@@ -1,0 +1,84 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #e9ecef;
+}
+
+.navbar {
+    width: 100%;
+    padding: 16px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 32px;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar li {
+    display: inline;
+}
+
+.navbar a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.navbar a:hover {
+    color: #3a86ff;
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    background-color: #f5f7fa;
+    padding: 48px 24px;
+    border-radius: 16px;
+    box-shadow: 0 6px 32px rgba(0,0,0,0.10);
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.home-container h1 {
+    font-size: 2.7rem;
+    color: #22223b;
+    margin-bottom: 18px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.home-container p {
+    font-size: 1.15rem;
+    color: #4a4e69;
+    margin-bottom: 36px;
+    text-align: center;
+}
+
+.home-button {
+    padding: 14px 36px;
+    font-size: 1.05rem;
+    color: #fff;
+    background: linear-gradient(90deg, #3a86ff 0%, #4361ee 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(58,134,255,0.08);
+}
+
+.home-button:hover {
+    background: linear-gradient(90deg, #265d97 0%, #3a86ff 100%);
+    transform: translateY(-2px) scale(1.03);
+}
