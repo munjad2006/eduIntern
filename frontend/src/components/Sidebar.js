@@ -34,10 +34,10 @@ function Sidebar({ role }) {
         position: "fixed", // keeps sidebar in place
         left: 0,
         width: "12%",
+        height: "40%",
         background: darkMode ? colors.dark : colors.light,
         color: darkMode ? colors.light : colors.dark,
         padding: "1rem",
-        minHeight: "100vh",
       }}
     >
       <ul style={{ listStyle: "none", padding: 0 }}>

@@ -1,12 +1,29 @@
 // frontend/src/components/CourseCard.js
 import React from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import colors from "../Color";
 
-function CourseCard({ course }) {
+function CourseCard({ course, onDelete }) {
   const { darkMode } = useContext(ThemeContext);
+
+const handleDelete = async () => {
+  if (!window.confirm(`Are you sure you want to delete "${course.title}"?`)) return;
+
+  try {
+    const res = await axios.delete(`http://localhost:5000/api/courses/${course._id}`);
+    alert(res.data.message || "Course deleted successfully");
+
+    if (onDelete) onDelete(course._id); // ✅ remove from parent state
+  } catch (err) {
+    console.error("Error deleting course:", err);
+    alert("Failed to delete course. Please try again.");
+  }
+};
+
+
   return (
     <div
       style={{
@@ -18,40 +35,55 @@ function CourseCard({ course }) {
         backgroundColor: darkMode ? colors.dark : colors.light,
         color: darkMode ? colors.light : colors.dark,
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-5px)";
-        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
       }}
     >
-      <h3>{course.title}</h3>
-      <p>
-        <strong>Duration:</strong> {course.duration}
-      </p>
-      <p>
-        <strong>Certificate:</strong> {course.certificate}
-      </p>
+      {course.thumbnail && (
+        <img
+          src={course.thumbnail}
+          alt={course.title}
+          style={{
+            width: "100%",
+            height: "150px",
+            objectFit: "cover",
+            borderRadius: "8px",
+            marginBottom: "10px",
+          }}
+        />
+      )}
 
-      <Link
-        to={`/course/${course._id}`}
-        style={{
-          marginTop: "1rem",
-          backgroundColor: "#007bff",
-          color: "#fff",
-          border: "none",
-          padding: "8px 12px",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Know More
-      </Link>
+      <h3>{course.title}</h3>
+      {course.level && <p>Level: {course.level}</p>}
+      {course.price !== undefined && <p>Price: ₹{course.price}</p>}
+      {course.duration && <p>Duration: {course.duration}</p>}
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+        <Link
+          to={`/course/${course._id}`}
+          style={{
+            backgroundColor: "#007bff",
+            color: "#fff",
+            textDecoration: "none",
+            padding: "8px 12px",
+            borderRadius: "5px",
+          }}
+        >
+          View
+        </Link>
+
+        <button
+          onClick={handleDelete}
+          style={{
+            backgroundColor: "#dc3545",
+            color: "#fff",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Delete
+        </button>
+      </div>
     </div>
   );
 }

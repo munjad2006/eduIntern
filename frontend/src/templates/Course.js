@@ -68,7 +68,7 @@ function Course() {
             </section>
 
             <section>
-               <div
+              <div
                 style={{
                   display: "flex",
                   flexDirection: "row",
@@ -78,21 +78,30 @@ function Course() {
                   alignItems: "flex-start",
                 }}
               >
-              {courses && courses.length > 0 ? (
-                // Filter courses that belong to the current company
-                courses.filter((c) => c && c.companyId === user.id).length >
-                0 ? (
-                  courses
-                    .filter((c) => c && c.companyId === user.id)
-                    .map((c) => (
-                      <CourseCard key={c._id || Math.random()} course={c} />
-                    ))
+                {courses && courses.length > 0 ? (
+                  // Filter courses that belong to the current company
+                  courses.filter((c) => c && c.companyId === user.id).length >
+                  0 ? (
+                    courses
+                      .filter((c) => c && c.companyId === user.id)
+                      .map((c) => (
+                        <CourseCard
+                          key={c._id}
+                          course={c}
+                          userRole={user.role}
+                          onDelete={(deletedId) =>
+                            setCourses((prev) =>
+                              prev.filter((course) => course._id !== deletedId)
+                            )
+                          }
+                        />
+                      ))
+                  ) : (
+                    <p>No courses available.</p>
+                  )
                 ) : (
                   <p>No courses available.</p>
-                )
-              ) : (
-                <p>No courses available.</p>
-              )}
+                )}
               </div>
             </section>
           </>
@@ -100,25 +109,31 @@ function Course() {
 
         {user.role === "student" && (
           <>
-           <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: "1rem",
-                  justifyContent: "flex-start",
-                  alignItems: "flex-start",
-                }}
-              >
-            {courses && courses.length > 0 ? (
-              courses
-                .filter((c) => c != null)
-                .map((c) => (
-                  <CourseCard key={c._id || Math.random()} course={c} />
-                ))
-            ) : (
-              <p>No courses available.</p>
-            )}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: "1rem",
+                justifyContent: "flex-start",
+                alignItems: "flex-start",
+              }}
+            >
+              {courses && courses.length > 0 ? (
+                courses
+                  .filter((c) => c != null)
+                  .map((c) => (
+                    <CourseCard
+                      key={c._id || Math.random()}
+                      course={c}
+                      onDelete={(deletedId) => {
+    setCourses((prev) => prev.filter((course) => course._id !== deletedId));
+  }}
+                    />
+                  ))
+              ) : (
+                <p>No courses available.</p>
+              )}
             </div>
           </>
         )}

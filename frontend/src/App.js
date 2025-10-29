@@ -11,8 +11,12 @@ import Course from './templates/Course';
 import CourseDetail from './templates/CourseDetail';
 import Profile from './templates/Profile';
 import Settings from './templates/Settings';
+import colors from "./Color";
+import { useContext } from 'react';
+import { ThemeContext } from './context/ThemeContext';
 
 function AppContent() {
+  const { darkMode } = useContext(ThemeContext);
   const location = useLocation();
   const hide = location.pathname === '/login' || location.pathname === '/register';
 
@@ -22,6 +26,7 @@ function AppContent() {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
+        background: `linear-gradient(to right, ${darkMode ? colors.dark : colors.light}, 14.5%, white 12%)`,
       }}
     >
       {!hide && <Navbar />}
