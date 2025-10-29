@@ -4,7 +4,7 @@ import { ThemeContext } from "../context/ThemeContext";
 import colors from "../Color";
 
 function InternshipCard({ internship }) {
-   const { darkMode } = useContext(ThemeContext);
+  const { darkMode } = useContext(ThemeContext);
   if (!internship) return null;
 
   const {
@@ -21,45 +21,91 @@ function InternshipCard({ internship }) {
   return (
     <div
       style={{
-        border: "1px solid #ccc",
-        borderRadius: "10px",
-        padding: "1rem",
-        margin: "0.5rem",
-        width: "280px",
-        backgroundColor: darkMode ? colors.dark : colors.light,
-        color: darkMode ? colors.light : colors.dark,
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        backgroundColor: darkMode ? "#1e1e1e" : "#fff",
+        color: darkMode ? "#f5f5f5" : "#222",
+        borderRadius: "12px",
+        boxShadow: darkMode
+          ? "0 4px 12px rgba(255, 255, 255, 0.05)"
+          : "0 4px 12px rgba(0, 0, 0, 0.1)",
+        padding: "1.2rem",
+        width: "300px",
+        margin: "1rem",
+        transition: "all 0.3s ease",
         cursor: "pointer",
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-5px)";
-        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = "translateY(-6px)";
+        e.currentTarget.style.boxShadow = darkMode
+          ? "0 6px 18px rgba(255, 255, 255, 0.1)"
+          : "0 6px 18px rgba(0, 0, 0, 0.15)";
       }}
-      onMouseLeave={(e) => {
+      onMouseOut={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+        e.currentTarget.style.boxShadow = darkMode
+          ? "0 4px 12px rgba(255, 255, 255, 0.05)"
+          : "0 4px 12px rgba(0, 0, 0, 0.1)";
       }}
     >
-      <p>
-        <strong>{activelyHiring ? "Actively Hiring" : "Not Hiring"}</strong>
+      <p
+        style={{
+          color: activelyHiring ? "#28a745" : "#dc3545",
+          fontWeight: "600",
+          marginBottom: "8px",
+        }}
+      >
+        {activelyHiring ? "Actively Hiring" : "Not Hiring"}
       </p>
-      <h3>{title}</h3>
-      <p>{companyWebsite}</p>
-      <p>Work Type: {workType}</p>
-      <p>Start: {startImmediately ? "Immediately" : internship.startDate}</p>
-      <p>Duration: {duration}</p>
-      <p>Stipend: {stipend}</p>
+
+      <h3
+        style={{
+          fontSize: "1.25rem",
+          fontWeight: "600",
+          marginBottom: "6px",
+          lineHeight: "1.3",
+        }}
+      >
+        {title}
+      </h3>
+
+      <p
+        style={{
+          color: "#007bff",
+          fontWeight: "500",
+          fontSize: "0.95rem",
+          marginBottom: "10px",
+        }}
+      >
+        {companyWebsite}
+      </p>
+
+      <div style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
+        <p>💼 <strong>Work Type:</strong> {workType}</p>
+        <p>🕒 <strong>Start:</strong> {startImmediately ? "Immediately" : internship.startDate}</p>
+        <p>📅 <strong>Duration:</strong> {duration || "N/A"}</p>
+        <p>💰 <strong>Stipend:</strong> {stipend || "Not specified"}</p>
+      </div>
+
       <Link
         to={`/internship/${_id}`}
         style={{
-          marginTop: "1rem",
+          display: "inline-block",
+          marginTop: "1.2rem",
           backgroundColor: "#007bff",
           color: "#fff",
-          border: "none",
-          padding: "8px 12px",
-          borderRadius: "5px",
-          cursor: "pointer",
+          textDecoration: "none",
+          padding: "10px 18px",
+          borderRadius: "6px",
+          fontSize: "0.95rem",
+          fontWeight: "500",
+          transition: "all 0.2s ease",
+        }}
+        onMouseOver={(e) => {
+          e.target.style.backgroundColor = "#0056b3";
+          e.target.style.transform = "scale(1.05)";
+        }}
+        onMouseOut={(e) => {
+          e.target.style.backgroundColor = "#007bff";
+          e.target.style.transform = "scale(1)";
         }}
       >
         View More
@@ -69,12 +115,3 @@ function InternshipCard({ internship }) {
 }
 
 export default InternshipCard;
-
-//           <p>Stipend: {stipend}</p>
-//           <p>Apply By: {applyEndDate}</p>
-//           <p>About Company: {aboutCompany}</p>
-//           <p>Skills Required: {skillRequired}</p>
-//           <p>Certificates: {certificates}</p>
-//           <p>Conditions: {conditions}</p>
-//           <p>Seats: {seats}</p>
-//           <p>Additional Info: {additionalInfo}</p>

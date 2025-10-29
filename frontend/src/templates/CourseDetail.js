@@ -1,64 +1,57 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import AddLessonForm from "../components/AddLessonForm";
+import { ThemeContext } from "../context/ThemeContext";
+import colors from "../Color";
 
 function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { darkMode } = useContext(ThemeContext);
+
   const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState("");
-  const [lessons, setLessons] = useState([]);
-
-  const user = JSON.parse(localStorage.getItem("user")) || {};
-  const token = localStorage.getItem("token");
-
   const [editingLesson, setEditingLesson] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editVideo, setEditVideo] = useState(null);
   const [editResources, setEditResources] = useState([]);
 
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const token = localStorage.getItem("token");
+
+  // Fetch course and lessons
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await axios.get(
-          `http://localhost:5000/api/courses/${id}`
-        );
-        setCourse(data);
-        if (data.reviews) setReviews(data.reviews);
+        const [courseRes, lessonsRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/courses/${id}`),
+          axios.get(`http://localhost:5000/api/lessons/${id}`),
+        ]);
+        setCourse(courseRes.data);
+        setLessons(lessonsRes.data);
+        if (courseRes.data.reviews) setReviews(courseRes.data.reviews);
       } catch (err) {
-        console.error("Error fetching course:", err);
+        console.error("Error fetching course details:", err);
       }
     };
-
-    const fetchLessons = async () => {
-      try {
-        const { data } = await axios.get(
-          `http://localhost:5000/api/lessons/${id}`
-        );
-        setLessons(data);
-      } catch (err) {
-        console.error("Error fetching lessons:", err);
-      }
-    };
-
-    fetchCourse();
-    fetchLessons();
+    fetchData();
   }, [id]);
 
+  if (!course) return <p style={{ margin: "2rem" }}>Loading course details...</p>;
+
+  // Review submit
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    if (!newReview.trim()) return;
     try {
       const { data } = await axios.post(
         `http://localhost:5000/api/courses/${id}/reviews`,
-        {
-          userId: user.id,
-          userName: user.name,
-          comment: newReview,
-        },
+        { userId: user.id, userName: user.name, comment: newReview },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setReviews((prev) => [data, ...prev]);
@@ -68,44 +61,14 @@ function CourseDetail() {
     }
   };
 
-  if (!course) return <p>Loading course details...</p>;
-
+  // Lesson editing
   const handleDeleteLesson = async (lessonId) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this lesson? This action cannot be undone."
-    );
-    if (!confirmDelete) return;
-
+    if (!window.confirm("Delete this lesson?")) return;
     try {
       await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`);
       setLessons((prev) => prev.filter((l) => l._id !== lessonId));
-      alert("Lesson deleted successfully.");
     } catch (err) {
       console.error("Error deleting lesson:", err);
-      alert("Failed to delete lesson.");
-    }
-  };
-
-  const handleEditLesson = async (lesson) => {
-    const newTitle = prompt("Edit Lesson Title:", lesson.title);
-    const newDesc = prompt("Edit Lesson Description:", lesson.description);
-    if (!newTitle || !newDesc) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("title", newTitle);
-      formData.append("description", newDesc);
-
-      const { data } = await axios.put(
-        `http://localhost:5000/api/lessons/${lesson._id}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
-      setLessons((prev) => prev.map((l) => (l._id === data._id ? data : l)));
-    } catch (err) {
-      console.error("Error updating lesson:", err);
-      alert("Failed to update lesson.");
     }
   };
 
@@ -113,12 +76,6 @@ function CourseDetail() {
     setEditingLesson(lesson);
     setEditTitle(lesson.title);
     setEditDescription(lesson.description);
-  };
-
-  const closeEditModal = () => {
-    setEditingLesson(null);
-    setEditTitle("");
-    setEditDescription("");
   };
 
   const handleSaveEdit = async () => {
@@ -136,310 +93,221 @@ function CourseDetail() {
       );
 
       setLessons((prev) => prev.map((l) => (l._id === data._id ? data : l)));
-      closeEditModal();
+      setEditingLesson(null);
     } catch (err) {
       console.error("Error updating lesson:", err);
-      alert("Failed to update lesson.");
     }
   };
 
+  // Theme colors
+  const bg = darkMode ? colors.dark : "#f9fafc";
+  const textColor = darkMode ? colors.light : colors.dark;
+  const cardBg = darkMode ? "#1f1f1f" : "#fff";
+
   return (
-    <div style={{ display: "flex", marginLeft: "15%" }}>
+    <div
+      style={{
+        display: "flex",
+        background: bg,
+        color: textColor,
+        minHeight: "100vh",
+        marginLeft:"13%"
+      }}
+    >
       <Sidebar role={user.role} />
-      <main style={{ flex: 1, padding: "1rem" }}>
+
+      <main style={{ flex: 1, padding: "2rem" }}>
+        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
           style={{
-            backgroundColor: "#007bff",
+            background: darkMode
+              ? "linear-gradient(90deg, #333, #555)"
+              : "linear-gradient(90deg, #007bff, #00bfff)",
             color: "#fff",
             border: "none",
-            padding: "8px 16px",
-            borderRadius: "5px",
+            padding: "10px 20px",
+            borderRadius: "8px",
             cursor: "pointer",
+            fontSize: "15px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+            transition: "transform 0.2s, box-shadow 0.2s",
+          }}
+          onMouseOver={(e) => {
+            e.target.style.transform = "translateY(-2px)";
+            e.target.style.boxShadow = "0 6px 12px rgba(0,0,0,0.3)";
+          }}
+          onMouseOut={(e) => {
+            e.target.style.transform = "translateY(0)";
+            e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
           }}
         >
           ← Back
         </button>
 
-        <h1 style={{ marginTop: "10px" }}>{course.title}</h1>
-        <p>{course.description}</p>
-        {course.videoUrl && (
-          <video
-            key={course.videoUrl}
-            controls
-            preload="metadata"
-            style={{
-              width: "70%",
-              borderRadius: "5px",
-              backgroundColor: "#000",
-            }}
-          >
-            <source
-              src={
-                course.videoUrl.startsWith("http")
-                  ? course.videoUrl
-                  : `http://localhost:5000${course.videoUrl}`
-              }
-              type="video/mp4"
-            />
-            Your browser does not support the video tag.
-          </video>
-        )}
+        {/* Course Card */}
+        <div
+          style={{
+            background: cardBg,
+            padding: "2rem",
+            borderRadius: "14px",
+            boxShadow: darkMode
+              ? "0 4px 15px rgba(255,255,255,0.05)"
+              : "0 6px 20px rgba(0,0,0,0.08)",
+            maxWidth: "900px",
+            margin: "2rem auto",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+          }}
+        >
+          <h1>{course.title}</h1>
+          <p style={{ lineHeight: "1.7" }}>{course.description}</p>
 
-        <p>
-          <strong>Category:</strong> {course.category}
-        </p>
-        <p>
-          <strong>Level:</strong> {course.level}
-        </p>
-        <p>
-          <strong>Price:</strong> ₹{course.price}
-        </p>
-
-        <h3>Modules</h3>
-        {course.modules?.length > 0 ? (
-          course.modules.map((mod, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: "#f8f9fa",
-                padding: "1rem",
-                borderRadius: "8px",
-                marginBottom: "10px",
-              }}
+          {course.videoUrl && (
+            <video
+              controls
+              style={{ width: "100%", borderRadius: "10px", marginTop: "1rem" }}
             >
-              <h4>
-                Module {idx + 1}: {mod.moduleTitle}
-              </h4>
-              <p>{mod.description}</p>
-            </div>
-          ))
-        ) : (
-          <p>No modules added yet.</p>
-        )}
-
-        <h3>Lessons</h3>
-
-        {/* ✅ Company can add new lessons */}
-        {user.role === "company" && (
-          <AddLessonForm
-            courseId={id}
-            onAdded={(newLesson) => setLessons((prev) => [newLesson, ...prev])}
-          />
-        )}
-
-        {lessons.length > 0 ? (
-          lessons.map((l, i) => (
-            <div
-              key={i}
-              style={{
-                background: "#f1f1f1",
-                padding: "10px",
-                borderRadius: "8px",
-                marginBottom: "10px",
-                position: "relative",
-              }}
-            >
-              <h4>{l.title}</h4>
-              <p>{l.description}</p>
-
-              {l.videoUrl && (
-                <video
-                  src={`http://localhost:5000${l.videoUrl}`}
-                  controls
-                  style={{ width: "70%", borderRadius: "5px" }}
-                >
-                  Your browser does not support the video tag.
-                </video>
-              )}
-
-              {l.resources?.length > 0 && (
-                <div style={{ marginTop: "8px" }}>
-                  <strong>Resources:</strong>
-                  <ul>
-                    {l.resources.map((file, idx) => (
-                      <li key={idx}>
-                        <a
-                          href={file}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {file.split("/").pop()}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {user.role === "company" && (
-                <div
-                  style={{ marginTop: "10px", display: "flex", gap: "10px" }}
-                >
-                  <button
-                    onClick={() => openEditModal(l)}
-                    style={{
-                      backgroundColor: "#007bff",
-                      color: "#fff",
-                      border: "none",
-                      padding: "6px 10px",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteLesson(l._id)}
-                    style={{
-                      backgroundColor: "#dc3545",
-                      color: "#fff",
-                      border: "none",
-                      padding: "6px 10px",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <p>No lessons yet.</p>
-        )}
-
-        <h3>Student Reviews</h3>
-        {reviews.length > 0 ? (
-          reviews.map((r, idx) => (
-            <div
-              key={idx}
-              style={{ borderBottom: "1px solid #ddd", marginBottom: "10px" }}
-            >
-              <strong>{r.userName}</strong>
-              <p>{r.comment}</p>
-            </div>
-          ))
-        ) : (
-          <p>No reviews yet.</p>
-        )}
-
-        {user.role === "student" && (
-          <form onSubmit={handleReviewSubmit} style={{ marginTop: "1rem" }}>
-            <textarea
-              placeholder="Write your review..."
-              value={newReview}
-              onChange={(e) => setNewReview(e.target.value)}
-              required
-              style={{ width: "100%", height: "80px" }}
-            />
-            <button type="submit" style={{ marginTop: "10px" }}>
-              Submit Review
-            </button>
-          </form>
-        )}
-
-        {editingLesson && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "rgba(0, 0, 0, 0.5)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              style={{
-                background: "#fff",
-                padding: "20px",
-                borderRadius: "10px",
-                width: "400px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-              }}
-            >
-              <h3>Edit Lesson</h3>
-
-              <label>Title</label>
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  marginBottom: "10px",
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                }}
+              <source
+                src={
+                  course.videoUrl.startsWith("http")
+                    ? course.videoUrl
+                    : `http://localhost:5000${course.videoUrl}`
+                }
+                type="video/mp4"
               />
+            </video>
+          )}
 
-              <label>Description</label>
-              <textarea
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "80px",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "5px",
-                }}
-              />
-
-              <label>Change Video (optional)</label>
-              <input
-                type="file"
-                accept="video/*"
-                onChange={(e) => setEditVideo(e.target.files[0])}
-                style={{ display: "block", marginBottom: "10px" }}
-              />
-
-              <label>Change Resources (optional)</label>
-              <input
-                type="file"
-                multiple
-                onChange={(e) => setEditResources(Array.from(e.target.files))}
-                style={{ display: "block", marginBottom: "10px" }}
-              />
-
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <button
-                  onClick={closeEditModal}
-                  style={{
-                    backgroundColor: "#6c757d",
-                    color: "#fff",
-                    border: "none",
-                    padding: "8px 12px",
-                    borderRadius: "5px",
-                    marginRight: "8px",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  style={{
-                    backgroundColor: "#28a745",
-                    color: "#fff",
-                    border: "none",
-                    padding: "8px 12px",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
+          <div style={{ marginTop: "1.5rem", lineHeight: 1.8 }}>
+            <p><strong>Category:</strong> {course.category}</p>
+            <p><strong>Level:</strong> {course.level}</p>
+            <p><strong>Price:</strong> ₹{course.price}</p>
           </div>
-        )}
+
+          {/* Modules */}
+          <hr style={{ margin: "1.5rem 0", border: "none", borderTop: "1px solid #ddd" }} />
+          <h3>Modules</h3>
+          {course.modules?.length ? (
+            course.modules.map((mod, i) => (
+              <div
+                key={i}
+                style={{
+                  background: darkMode ? "#2a2a2a" : "#f8f9fa",
+                  padding: "1rem",
+                  borderRadius: "10px",
+                  marginBottom: "10px",
+                }}
+              >
+                <h4>Module {i + 1}: {mod.moduleTitle}</h4>
+                <p>{mod.description}</p>
+              </div>
+            ))
+          ) : (
+            <p>No modules yet.</p>
+          )}
+
+          {/* Lessons */}
+          <h3 style={{ marginTop: "2rem" }}>Lessons</h3>
+          {user.role === "company" && (
+            <AddLessonForm
+              courseId={id}
+              onAdded={(lesson) => setLessons((prev) => [lesson, ...prev])}
+            />
+          )}
+
+          {lessons.length ? (
+            lessons.map((l) => (
+              <div
+                key={l._id}
+                style={{
+                  background: darkMode ? "#2b2b2b" : "#f1f3f5",
+                  padding: "1rem",
+                  borderRadius: "10px",
+                  marginBottom: "12px",
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 10px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <h4>{l.title}</h4>
+                <p>{l.description}</p>
+
+                {l.videoUrl && (
+                  <video
+                    src={`http://localhost:5000${l.videoUrl}`}
+                    controls
+                    style={{
+                      width: "100%",
+                      borderRadius: "8px",
+                      marginTop: "10px",
+                    }}
+                  />
+                )}
+
+                {l.resources?.length > 0 && (
+                  <div>
+                    <strong>Resources:</strong>
+                    <ul>
+                      {l.resources.map((file, idx) => (
+                        <li key={idx}>
+                          <a
+                            href={file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "#007bff" }}
+                          >
+                            {file.split("/").pop()}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {user.role === "company" && (
+                  <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                    <button
+                      onClick={() => openEditModal(l)}
+                      style={{
+                        backgroundColor: "#007bff",
+                        color: "#fff",
+                        border: "none",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLesson(l._id)}
+                      style={{
+                        backgroundColor: "#dc3545",
+                        color: "#fff",
+                        border: "none",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No lessons yet.</p>
+          )}
+
+        </div>
       </main>
     </div>
   );

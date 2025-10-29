@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import axios from "axios";
+import { ThemeContext } from "../context/ThemeContext";
+import colors from "../Color";
 
 export default function AddCourseForm({ companyId, onAdded }) {
   const [title, setTitle] = useState("");
@@ -11,10 +13,10 @@ export default function AddCourseForm({ companyId, onAdded }) {
   const [videoUrl, setVideoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
+  const { darkMode } = useContext(ThemeContext);
 
   const token = localStorage.getItem("token");
 
-  // Upload Thumbnail
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -35,15 +37,14 @@ export default function AddCourseForm({ companyId, onAdded }) {
         }
       );
       setThumbnail(data.fileUrl);
-      setMessage("Thumbnail uploaded successfully!");
-    } catch (error) {
+      setMessage("✅ Thumbnail uploaded successfully!");
+    } catch {
       setMessage("❌ Error uploading thumbnail");
     } finally {
       setUploading(false);
     }
   };
 
-  // Upload Video
   const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -64,30 +65,23 @@ export default function AddCourseForm({ companyId, onAdded }) {
         }
       );
       setVideoUrl(data.fileUrl);
-      setMessage("Video uploaded successfully!");
-    } catch (error) {
+      setMessage("✅ Video uploaded successfully!");
+    } catch {
       setMessage("❌ Error uploading video");
     } finally {
       setUploading(false);
     }
   };
 
-  // Create Course
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) {
-      return setMessage("⚠️ Please login first.");
-    }
+    if (!token) return setMessage("⚠️ Please login first.");
 
     try {
       const { data } = await axios.post(
         "http://localhost:5000/api/courses",
         { title, description, category, level, price, thumbnail, videoUrl, companyId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessage("✅ Course created successfully!");
       onAdded && onAdded(data);
@@ -98,35 +92,45 @@ export default function AddCourseForm({ companyId, onAdded }) {
       setPrice("");
       setThumbnail("");
       setVideoUrl("");
-    } catch (error) {
-      console.error("Error creating course:", error);
+    } catch {
       setMessage("❌ Failed to create course");
     }
   };
+
+  const bg = darkMode
+    ? "linear-gradient(135deg, #0b0b0b, #121212, #1c1c1c)"
+    : "linear-gradient(135deg, #f5f8ff, #ffffff, #eef3ff)";
+  const cardBg = darkMode ? "#1a1a1a" : "#fff";
+  const textColor = darkMode ? colors.light : colors.dark;
 
   return (
     <section
       style={{
         minHeight: "100vh",
-        backgroundColor: "#f4f4f4",
-        padding: "30px 0",
+        background: bg,
+        color: textColor,
+        padding: "40px 0",
+        transition: "background 0.3s ease, color 0.3s ease",
       }}
     >
       <div
         style={{
           maxWidth: "700px",
           margin: "0 auto",
-          backgroundColor: "#fff",
+          background: cardBg,
           padding: "30px",
-          borderRadius: "10px",
-          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          borderRadius: "14px",
+          boxShadow: darkMode
+            ? "0 4px 15px rgba(255,255,255,0.05)"
+            : "0 6px 20px rgba(0,0,0,0.08)",
+          transition: "all 0.3s ease",
         }}
       >
         <h1
           style={{
             fontSize: "24px",
-            fontWeight: "bold",
-            marginBottom: "20px",
+            fontWeight: "700",
+            marginBottom: "25px",
             textAlign: "center",
           }}
         >
@@ -142,10 +146,12 @@ export default function AddCourseForm({ companyId, onAdded }) {
             required
             style={{
               width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
+              padding: "12px",
+              marginBottom: "12px",
               border: "1px solid #ccc",
-              borderRadius: "5px",
+              borderRadius: "6px",
+              background: darkMode ? "#222" : "#fff",
+              color: textColor,
             }}
           />
 
@@ -157,10 +163,12 @@ export default function AddCourseForm({ companyId, onAdded }) {
             rows="4"
             style={{
               width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
+              padding: "12px",
+              marginBottom: "12px",
               border: "1px solid #ccc",
-              borderRadius: "5px",
+              borderRadius: "6px",
+              background: darkMode ? "#222" : "#fff",
+              color: textColor,
             }}
           />
 
@@ -172,10 +180,12 @@ export default function AddCourseForm({ companyId, onAdded }) {
             required
             style={{
               width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
+              padding: "12px",
+              marginBottom: "12px",
               border: "1px solid #ccc",
-              borderRadius: "5px",
+              borderRadius: "6px",
+              background: darkMode ? "#222" : "#fff",
+              color: textColor,
             }}
           />
 
@@ -186,10 +196,12 @@ export default function AddCourseForm({ companyId, onAdded }) {
             onChange={(e) => setLevel(e.target.value)}
             style={{
               width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
+              padding: "12px",
+              marginBottom: "12px",
               border: "1px solid #ccc",
-              borderRadius: "5px",
+              borderRadius: "6px",
+              background: darkMode ? "#222" : "#fff",
+              color: textColor,
             }}
           />
 
@@ -200,10 +212,12 @@ export default function AddCourseForm({ companyId, onAdded }) {
             onChange={(e) => setPrice(e.target.value)}
             style={{
               width: "100%",
-              padding: "10px",
-              marginBottom: "10px",
+              padding: "12px",
+              marginBottom: "12px",
               border: "1px solid #ccc",
-              borderRadius: "5px",
+              borderRadius: "6px",
+              background: darkMode ? "#222" : "#fff",
+              color: textColor,
             }}
           />
 
@@ -216,11 +230,11 @@ export default function AddCourseForm({ companyId, onAdded }) {
             {thumbnail && (
               <img
                 src={thumbnail}
-                alt="thumb"
+                alt="Thumbnail"
                 style={{
                   marginTop: "10px",
                   height: "100px",
-                  borderRadius: "5px",
+                  borderRadius: "8px",
                 }}
               />
             )}
@@ -239,7 +253,7 @@ export default function AddCourseForm({ companyId, onAdded }) {
                 style={{
                   marginTop: "10px",
                   width: "100%",
-                  borderRadius: "5px",
+                  borderRadius: "8px",
                 }}
               />
             )}
@@ -250,12 +264,34 @@ export default function AddCourseForm({ companyId, onAdded }) {
             disabled={uploading}
             style={{
               width: "100%",
-              backgroundColor: "#007bff",
+              background: darkMode
+                ? "linear-gradient(90deg, #007bff, #3399ff)"
+                : "linear-gradient(90deg, #0056b3, #0099ff)",
               color: "#fff",
-              padding: "10px",
+              padding: "12px",
               border: "none",
-              borderRadius: "5px",
+              borderRadius: "8px",
               cursor: uploading ? "not-allowed" : "pointer",
+              fontWeight: "600",
+              fontSize: "16px",
+              boxShadow: darkMode
+                ? "0 3px 10px rgba(0, 123, 255, 0.3)"
+                : "0 3px 10px rgba(0, 0, 0, 0.15)",
+              transition: "all 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (!uploading) {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = darkMode
+                  ? "0 6px 14px rgba(0, 123, 255, 0.4)"
+                  : "0 6px 14px rgba(0, 0, 0, 0.25)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = darkMode
+                ? "0 3px 10px rgba(0, 123, 255, 0.3)"
+                : "0 3px 10px rgba(0, 0, 0, 0.15)";
             }}
           >
             {uploading ? "Uploading..." : "Create Course"}
@@ -268,6 +304,7 @@ export default function AddCourseForm({ companyId, onAdded }) {
               marginTop: "15px",
               textAlign: "center",
               color: message.includes("❌") ? "red" : "green",
+              fontWeight: "500",
             }}
           >
             {message}
